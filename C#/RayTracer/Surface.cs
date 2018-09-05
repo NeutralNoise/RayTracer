@@ -14,14 +14,14 @@ namespace RayTracer
             m_mat = new Material();
         }
 
-        private Material m_mat;
+        protected Material m_mat;
 
         public virtual bool Intersect(Ray r, ref float dist)
         {
             return false;
         }
 
-        public virtual Ray Reflect(Vector vec, Vector normal)
+        public virtual Ray Reflect(Vector vec, Vector dir, float dist, Ray ray)
         {
             return null;
         }
@@ -84,12 +84,14 @@ namespace RayTracer
             return false;
         }
 
-        public override Ray Reflect(Vector vec, Vector normal)
+        public override Ray Reflect(Vector vec, Vector dir, float dist, Ray ray)
         {
 
+            Vector nextOrgin = new Vector(ray.orgin + dist * ray.dir);
+            //Vector nextOrgin = dist * ray.dir;
+            Vector nextNormal = norm;
 
-
-            return null;
+            return SurfaceFunc.Reflect(m_mat, nextOrgin, ray.dir, nextNormal);
         }
 
         public override Vector CalculateSurfaceNormal()
@@ -168,10 +170,24 @@ namespace RayTracer
             
         }
 
-        public override Ray Reflect(Vector vec, Vector normal)
+        public override Ray Reflect(Vector vec, Vector dir, float dist, Ray ray)
         {
-            return null;
+
+            //dir = (dist * ray.dir + (ray.orgin - pos)).Normalize();
+
+            //Vector nextOrgin = new Vector(vec + dist * ray.dir);
+            Vector nextOrgin = new Vector(ray.orgin + dist * ray.dir);
+            //Vector nextNormal = (nextOrgin - this.pos).Normalize();
+            Vector nextNormal = (dist * ray.dir + (ray.orgin - pos)).Normalize();
+
+            return SurfaceFunc.Reflect(m_mat, nextOrgin, ray.dir, nextNormal);
         }
+
+        public override Vector CalculateSurfaceNormal()
+        {
+            return new Vector();
+        }
+
     }
 
     struct SurfaceFunc
@@ -208,13 +224,29 @@ namespace RayTracer
                     + ((v1.m_z - v2.m_z) * (v1.m_z - v2.m_z)));
         }
 
-        static public Vector Reflect(Vector vec, Vector normal)
+        static public Vector Reflect(Vector dir, Vector normal)
         {
-            //Vector d = normal.Scale(vec.DotProduct(normal));
-            Vector d = normal.Scale(vec.Normalize().DotProduct(normal));
-            Vector s = d.Scale(2);
+            Vector bounce = dir - 2.0f * (dir.DotProduct(normal) * normal);
 
-            return s - vec;
+            return bounce;
+        }
+
+        static public Ray Reflect(Material mat, Vector nextOrgin ,Vector dir, Vector nextNormal)
+        {
+
+            Vector pureBounce = Reflect(dir, nextNormal);
+            //this is a shit way todo this.
+            //TODO this is a shit way todo this. so make it better
+
+            Vector rv = new Vector(Helpers.Rand.RandomBilateral(),
+                                    Helpers.Rand.RandomBilateral(),
+                                    Helpers.Rand.RandomBilateral()
+                                    );
+
+            Vector RandomBounce = (nextNormal + rv).Normalize();
+            nextNormal = RandomBounce.Lerp(pureBounce, mat.reflect).Normalize();
+            //nextNormal = pureBounce;
+            return new Ray(nextOrgin, nextNormal);
         }
 
     }
@@ -265,12 +297,10 @@ namespace RayTracer
             return false;            
         }
 
-        public override Ray Reflect(Vector vec, Vector normal)
+        public override Ray Reflect(Vector vec, Vector normal, float dist, Ray ray)
         {
             //Bounce off the surface then just fuck off
-            Ray ray = new Ray(SurfaceFunc.Reflect(vec, normal));
-
-            return ray;
+            return new Ray(SurfaceFunc.Reflect(vec, normal)); ;
         }
 
         public override Vector CalculateSurfaceNormal()

@@ -23,7 +23,7 @@ namespace RayTracer
         static void Main(string[] args)
         {
             Camera camera = new Camera();
-            camera.SetPositon(new Vector(0.00f, -10.0f, 1.00f));
+            camera.SetPositon(new Vector(0.00f, -10.0f, 1.0f));
             camera.SetRotation();
             
             if (camera.GetFov() != 45.0f)
@@ -33,19 +33,26 @@ namespace RayTracer
 
             SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
-            mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
+            mat.SetColour(255.0f, 125.0f, 136.0f, 255.0f);
+            mat.reflect = Helpers.Rand.RandomBilateral();
+            //mat.SetEmitColour(255.0f, 125.0f, 136.0f, 255.0f);
             worldPlane.SetMat(mat);
 
             SurfaceSphere worldSphere = new SurfaceSphere();
             Material smat = new Material();
-            smat.SetColour(0.0f, 0.0f, 255.0f, 255.0f);
+            smat.SetColour(220.0f, 200.0f, 255.0f, 255.0f);
+            //smat.reflect = Helpers.Rand.RandomBilateral();
+            //smat.SetEmitColour(255.0f, 255.0f, 255.0f, 255.0f);
             worldSphere.SetMat(smat);
 
             SurfaceSphere worldSphere2 = new SurfaceSphere();
-            worldSphere2.pos.m_x = 2.0f;
-            
+            worldSphere2.pos.m_x = -2.0f;
+            worldSphere2.pos.m_y = -2.0f;
+            worldSphere2.pos.m_z = 2.0f;
+
             Material smat2 = new Material();
-            smat2.SetColour(0.0f, 255.0f, 0.0f, 255.0f);
+            smat2.SetColour(125.0f, 255.0f, 125.0f, 255.0f);
+            //smat2.reflect = Helpers.Rand.RandomBilateral();
             worldSphere2.SetMat(smat2);
 
             //Surface[] Walls = new Surface[] { worldPlane };
@@ -130,8 +137,9 @@ namespace RayTracer
                             Ray ray = new Ray();
                             ray.orgin = camera.GetPositon();
                             ray.dir = (filmP - camera.GetPositon());
-
-                            ColourRGBA colour = ray.Trace(ray, Walls, 0);
+                            Vector att = new Vector(1.0f, 1.0f, 1.0f);
+                            Vector result = new Vector(0.0f, 0.0f, 0.0f);
+                            ColourRGBA colour = ray.Trace(ray, Walls, 0, ref att, ref result);
                             rayCount++;
 
                             if(!looped)
@@ -142,7 +150,14 @@ namespace RayTracer
                             //Nothing intersects with this ray so black
                             if(colour == null)
                             {
-                                colour = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
+                                //colour = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
+                                colour = Config.Ray.SkyColour;
+                            }
+                            else
+                            {
+                                colour.Scale(255);
+                                colour.Clamp();
+
                             }
                             //Convert our colour to a colour windows C# understands
                             Color wColour = Color.FromArgb((int)colour.a, (int)colour.r, (int)colour.g, (int)colour.b);

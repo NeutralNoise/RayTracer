@@ -22,6 +22,22 @@ namespace RayTracer
             a = 0;
         }
 
+        public ColourRGBA(ColourRGBA c)
+        {
+            r = c.r;
+            g = c.g;
+            b = c.b;
+            a = c.a;
+        }
+
+        public ColourRGBA(Vector v, float a)
+        {
+            r = v.m_x;
+            g = v.m_y;
+            b = v.m_z;
+            this.a = a;
+        }
+
         public ColourRGBA(float r, float g, float b, float a) 
         {
             this.r = r;
@@ -40,6 +56,7 @@ namespace RayTracer
 
         public void Normalize()
         {
+            
             if(r != 0)
             {
                 r /= 255;
@@ -57,6 +74,64 @@ namespace RayTracer
                 a /= 255;
             }
 
+            /*
+            float ca = 0;
+            Vector v = ColourToVector(ref ca).Normalize();
+            Vector av = new Vector(ca,ca,ca).Normalize();
+
+            v = v.Scale(255);
+            av = av.Scale(255);
+
+            r = v.m_x;
+            g = v.m_y;
+            b = v.m_z;
+            a = av.m_x;
+            */
+        }
+
+        public void Scale(float s)
+        {
+            r *= s;
+            g *= s;
+            b *= s;
+            a *= s;
+        }
+
+        public void Clamp()
+        {
+            if (r > 255)
+            {
+                r = 255;
+            }
+            if (g > 255)
+            {
+                g = 255;
+            }
+            if (b > 255)
+            {
+                b = 255;
+            }
+            if (a > 255)
+            {
+                a = 255;
+            }
+
+            if (r < 0)
+            {
+                r = 0;
+            }
+            if (g < 0)
+            {
+                g = 0;
+            }
+            if (b < 0)
+            {
+                b = 0;
+            }
+            if (a < 0)
+            {
+                a = 0;
+            }
         }
 
         public override bool Equals(object obj)
@@ -151,6 +226,13 @@ namespace RayTracer
         public static ColourRGBA operator /(float f, ColourRGBA colour)
         {
             return new ColourRGBA(colour.r / f, colour.g / f, colour.b / f, colour.a / f);
+        }
+
+        public Vector ColourToVector(ref float a)
+        {
+            a = this.a;
+
+            return new Vector(r,g,b);
         }
 
     }

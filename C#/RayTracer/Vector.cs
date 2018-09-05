@@ -15,9 +15,15 @@ namespace RayTracer
 
         }
 
-        public Ray(Vector v)
+        public Ray(Vector o)
         {
-            orgin = v;
+            orgin = o;
+        }
+
+        public Ray(Vector o, Vector d)
+        {
+            orgin = o;
+            dir = d;
         }
 
 
@@ -25,7 +31,7 @@ namespace RayTracer
         public Vector dir;
 
 
-        public ColourRGBA Trace(Ray r, Surface[] quads, float c)
+        public ColourRGBA Trace(Ray r, Surface[] quads, float c, ref Vector att, ref Vector result)
         {
 
             if (c < Config.Ray.MaxBounce)
@@ -86,34 +92,95 @@ namespace RayTracer
 
                 if (closest != null)
                 {
-                    return closest.GetMat().GetColour();
+                    //return closest.GetMat().GetColour();
                     {
-                        /*
+
                         //Bounce off the surface then just fuck off
-                        Ray ray = new Ray(SurfaceFunc.Reflect(r.vec, normal));
+                        //Ray ray = new Ray(SurfaceFunc.Reflect(r.vec, normal));
+                        
 
-                        if((c + 1) > Config.Ray.MaxBounce)
+                        if ((c + 1) > Config.Ray.MaxBounce)
                         {
-                            return closest.m_mat.GetColour(); ;
+                            float af = 0;
+                            result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref af).Normalize();
+                            result.Scale(255);
+                            return new ColourRGBA(result.Scale(255), af);
                         }
 
-                        ColourRGBA bounceColour;
-                        bounceColour = ray.Trace(ray, quads, c + 1);
+                        normal = closest.CalculateSurfaceNormal();
 
-                        if(bounceColour == null) {
-                            bounceColour = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
+                        //This is just some error check for when im adding things to the tracer.
+                        if(normal == null)
+                        {
+                            Console.WriteLine("----------------------------------------");
+                            Console.WriteLine(closest.ToString());
+                            Console.WriteLine("This can't calculate the surface normal!");
+                            Console.ReadKey();
+                            Environment.Exit(1);
                         }
+
+                        Ray ray = closest.Reflect(r.orgin, closest.CalculateSurfaceNormal(), closestDist, r);
+
+                        if (ray == null)
+                        {
+                            Console.WriteLine("----------------------------------------");
+                            Console.WriteLine(closest.ToString());
+                            Console.WriteLine("This can not reflect!");
+                            Console.ReadKey();
+                            Environment.Exit(1);
+                        }
+
+                        ColourRGBA resultColour;
+                        float a = 0; //this isn't used
+                        
+                        result += att * closest.GetMat().GetEmitColour().ColourToVector(ref a);
+                        ColourRGBA rc = new ColourRGBA(closest.GetMat().GetColour());
+                        rc.Normalize();
+                        att = att * rc.ColourToVector(ref a);
+                        ray.Trace(ray, quads, c + 1, ref att, ref result);
+                        resultColour = new ColourRGBA(result, a);
+                        /*
+                        if (bounceColour == null) {
+                            //we have hit the sky
+                            bounceColour = Config.Ray.SkyColour;
+                        }
+                        
                         //ColourRGBA mat = new ColourRGBA(0, 0, 255, 255);
-                        ColourRGBA mat = closest.m_mat.GetColour();
-                        if(mat.b != 0)
-                        {
-                            int fdsf = 498;
-                        }
-                        bounceColour = bounceColour + mat;
+                        ColourRGBA mat = closest.GetMat().GetColour();
 
-                        return bounceColour;
+                        //Convert the colour to a Vec 3
+                        Vector vc = new Vector(mat.r, mat.g, mat.b);
+                        float trans = mat.a;
+
+                        Vector vc2 = new Vector(bounceColour.r, bounceColour.g, bounceColour.b);
+                        trans = bounceColour.a + trans;
+
+                        //Clamp the transperancy
+                        if(trans > 255)
+                        {
+                            trans = 255;
+                        }
+                        else if (trans < 0)
+                        {
+                            trans = 0;
+                        }
+                        
+                        Vector cnorm = (vc + vc2).Normalize();
+
+                        cnorm  = cnorm.Scale(255.0f);
+
+                        bounceColour = new ColourRGBA(cnorm.m_x, cnorm.m_y, cnorm.m_z, trans);
                         */
+                        //return bounceColour;
+                        return resultColour;
                     }
+                }
+                else
+                {
+                    float a = 0;
+                    result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref a).Normalize();
+                    result.Scale(255);
+                    return new ColourRGBA(result.Scale(255), a);
                 }
             }
             
@@ -317,6 +384,17 @@ namespace RayTracer
         public float m_x;
         public float m_y;
         public float m_z;
+
+        public Vector Lerp(Vector b, float t)
+            //(float v0, float v1, float t)
+        {
+            float x = (1 - t) * m_x + t * b.m_x;
+            float y = (1 - t) * m_y + t * b.m_y;
+            float z = (1 - t) * m_z + t * b.m_z;
+
+            return new Vector(x, y, z);
+            //return (1 - t) * v0 + t * v1;
+        }
 
     }
 }
