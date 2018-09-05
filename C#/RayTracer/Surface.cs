@@ -149,13 +149,13 @@ namespace RayTracer
 
                 float t = tp;
 
-                if(tn > 0 && tn < tp)
+                if(tn > Config.MinHitDistance && tn < tp)
                 {
                     t = tn;
                     dist = t;
                     return true;
                 }
-                else if(tp > 0)
+                else if(tp > Config.MinHitDistance)
                 {
                     dist = t;
                     return true;
