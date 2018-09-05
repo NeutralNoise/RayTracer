@@ -26,6 +26,11 @@ namespace RayTracer
             return null;
         }
 
+        public virtual Vector CalculateSurfaceNormal()
+        {
+            return null;
+        }
+
         public void SetMat(Material mat)
         {
             m_mat = mat;
@@ -81,7 +86,15 @@ namespace RayTracer
 
         public override Ray Reflect(Vector vec, Vector normal)
         {
+
+
+
             return null;
+        }
+
+        public override Vector CalculateSurfaceNormal()
+        {
+            return norm;
         }
 
     }
@@ -119,7 +132,7 @@ namespace RayTracer
             float Denom = 2.0f * a;
             float RootTerm = (float)Math.Sqrt(b * b - 4.00f * a * c);
             float d = (b * b - 4.00f * a * c);
-            if(d < 0.0f)
+            if(d < Config.MinHitDistance)
             {
                 return false;
             }
@@ -231,6 +244,40 @@ namespace RayTracer
         {
             return -444094959 + EqualityComparer<Vertex[]>.Default.GetHashCode(m_pos);
         }
+
+        public override bool Intersect(Ray r, ref float dist)
+        {
+           
+            Vector norm = SurfaceFunc.CalculateSurfaceNormal(m_pos);
+            norm.m_y = -norm.m_y;
+            float facing = norm.DotProduct(r.orgin);
+            if (facing <= Config.Tolerance && facing >= Config.MinTolerance)
+            {
+                //normal = norm;
+                //closest = quad;
+                dist = (float)SurfaceFunc.Vec3Distance(r.orgin, norm);
+                if(dist < Config.MinHitDistance)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;            
+        }
+
+        public override Ray Reflect(Vector vec, Vector normal)
+        {
+            //Bounce off the surface then just fuck off
+            Ray ray = new Ray(SurfaceFunc.Reflect(vec, normal));
+
+            return ray;
+        }
+
+        public override Vector CalculateSurfaceNormal()
+        {
+            return SurfaceFunc.CalculateSurfaceNormal(m_pos);
+        }
+
     }
 
     class SurfaceQuad : Surface
