@@ -10,6 +10,7 @@ namespace RayTracer
     {
         static public float Tolerance = 0.0001f;
         static public Vector Orgin = new Vector(0.00f, 0.00f, 0.00f);
+        static public Vector UP = new Vector(0.0f, 0.0f, 1.0f);
         static public float MinTolerance = 0.0001f;
 
         public class Ray
