@@ -10,14 +10,12 @@ namespace RayTracer
     class Program
     {
 
-        static private Vector UP = new Vector(0.0f, 0.0f, 1.0f);
-
-        static private int Width = 3840;
-        static private int Height = 2160;
+        //static private int Width = 3840;
+        //static private int Height = 2160;
         //static private int Width = 1280;
         //static private int Height = 720;
-        //static private int Width = 300;
-        //static private int Height = 300;
+        static private int Width = 300;
+        static private int Height = 300;
 
 
         static private int rpp = 1; // Ray Per Pixel
@@ -25,7 +23,7 @@ namespace RayTracer
         static void Main(string[] args)
         {
             Camera camera = new Camera();
-            camera.SetPositon(new Vector(0.00f, -5.0f, 1.00f));
+            camera.SetPositon(new Vector(0.00f, -10.0f, 1.00f));
             camera.SetRotation();
             
             if (camera.GetFov() != 45.0f)
@@ -33,7 +31,7 @@ namespace RayTracer
                 camera.SetFov(45.0f);
             }
 
-            Surface worldPlane = new Surface();
+            SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
             mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
             worldPlane.m_mat = mat;
@@ -43,10 +41,16 @@ namespace RayTracer
             smat.SetColour(0.0f, 0.0f, 255.0f, 255.0f);
             worldSphere.m_mat = smat;
 
-            //Surface[] Walls = new Surface[] { worldPlane };
-            Surface[] Walls = new Surface[] { worldPlane, worldSphere };
+            SurfaceSphere worldSphere2 = new SurfaceSphere();
+            worldSphere2.pos.m_x = 2.0f;
+            
+            Material smat2 = new Material();
+            smat2.SetColour(0.0f, 255.0f, 0.0f, 255.0f);
+            worldSphere2.m_mat = smat2;
 
-            Console.WriteLine("Testing ME shit");
+            //Surface[] Walls = new Surface[] { worldPlane };
+            Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 };
+
             Console.WriteLine("Casting Rays");
             Console.WriteLine("Casting: " + ((Width * Height) * rpp).ToString() + " rays!");
 
@@ -67,11 +71,11 @@ namespace RayTracer
 
             if(Width > Height)
             {
-                filmH = filmW * (float)Height / (float)Width;
+                filmH = filmW * ((float)Height / (float)Width);
             }
             else if (Height > Width)
             {
-                filmW = filmH * (float)Width / (float)Height;
+                filmW = filmH * ((float)Width / (float)Height);
             }
 
             float halffilmW = 0.5f * filmW;

@@ -11,32 +11,13 @@ namespace RayTracer
 
         public Surface()
         {
-
+            m_mat = new Material();
         }
 
-        public float d = 0;
-        //This is for defining a plane.
-        public Vector norm = new Vector(0.0f, 0.0f, 1.0f);
         public Material m_mat;
-        public Vertex[] m_pos;
 
         public virtual bool Intersect(Ray r, ref float dist)
         {
-            //Check if the ray hits the plane
-            //for the ray
-            //f(t) = ro + t * rd
-            // ro is ray orgin
-            // rd is ray direction
-            // where t is marching down the ray dir from the orgin
-
-            //N(ro + t * rd) + d = 0;
-            float Denom = norm.DotProduct(r.dir);
-            if((Denom < -Config.Tolerance) || (Denom > Config.Tolerance))
-            {
-                dist = (-d - norm.DotProduct(r.orgin)) / Denom;
-                return true;
-            }
-
             return false;
         }
 
@@ -47,55 +28,83 @@ namespace RayTracer
 
     }
 
-    class SurfaceSphere : Surface
+    class SurfacePlane : Surface
     {
 
+        public SurfacePlane()
+        {
+            d = 0;
+            norm = Config.UP;
+        }
+
+        public SurfacePlane(float d, Vector n) 
+        {
+            this.d = d;
+            norm = n;
+        }
+
+        //How far down the normal is the plane?
+        //Well thats what I think this does.
+        public float d;
+        //Which way is up
+        public Vector norm;
+
+        public override bool Intersect(Ray r, ref float dist)
+        {
+            //Check if the ray hits the plane
+            //for the ray
+            //f(t) = ro + t * rd
+            // ro is ray orgin
+            // rd is ray direction
+            // where t is marching down the ray dir from the orgin
+
+            //N(ro + t * rd) + d = 0;
+            float Denom = norm.DotProduct(r.dir);
+            if ((Denom < -Config.Tolerance) || (Denom > Config.Tolerance))
+            {
+                dist = (-d - norm.DotProduct(r.orgin)) / Denom;
+                return true;
+            }
+
+            return false;
+        }
+
+        public override Ray Reflect(Vector vec, Vector normal)
+        {
+            return null;
+        }
+
+    }
+
+    class SurfaceSphere : Surface
+    {
+        public SurfaceSphere()
+        {
+            r = 1.0f;
+            pos = new Vector(0.0f, 0.0f, 0.0f);
+        }
+
+        public SurfaceSphere(float r, Vector pos)
+        {
+            this.r = r;
+            this.pos = pos;
+        }
+
         public float r = 1.0f;
-        public Vector pos = new Vector(0, 0.0f, 0.0f);
+        public Vector pos;
 
         public override bool Intersect(Ray ray, ref float dist)
         {
-            /*
-            float a = ray.dir.DotProduct(ray.dir);
-            float b = 2.0f * ray.dir.DotProduct(ray.vec);
-            //float b = ray.dir * (2.0f * (ray.vec - pos));
-            float c = ray.vec.DotProduct(ray.vec) - r * r;
-            //float d = b * b - 4.0f * a * c;
-            float d = 2.0f * a;
-
-            //Ray can not intersect.
-            if (d < 0.0f)
-            {
-                return false;
-            }
-
-            d = (float)Math.Sqrt(d);
-
-            // Ray can intersect the sphere, solve the closer hitpoint
-            float t = (-0.5f) * (b + d) / a;
-
-            if(t > 0.0f)
-            {
-                dist = (float)Math.Sqrt(a) * t;
-            }
-            else
-            {
-                return false;
-            }
-
-            return true;
-            */
-
-
-            //The sphere normal
-            Vector normal = (ray.orgin - pos).Normalize();
+            //The sphere normal this is used when bouncing.
+            //Vector normal = (ray.orgin - pos).Normalize();
 
             //move everything relitve to the sphere
             Vector LocalSphereRayOrgin = ray.orgin - pos;
 
             float a = ray.dir.DotProduct(ray.dir);
             float b = 2.0f * ray.dir.DotProduct(LocalSphereRayOrgin);
-            float c = ray.orgin.DotProduct(LocalSphereRayOrgin) - r * r;
+            //float c = ray.orgin.DotProduct(LocalSphereRayOrgin) - r * r;
+            float c = LocalSphereRayOrgin.DotProduct(LocalSphereRayOrgin) - r * r;
 
             float Denom = 2.0f * a;
             float RootTerm = (float)Math.Sqrt(b * b - 4.00f * a * c);
@@ -189,7 +198,8 @@ namespace RayTracer
     
     class SurfaceTriangle : Surface
     {
-
+        //TODO: This should be moved into a diffeerent class that this inherets from.
+        public Vertex[] m_pos;
         public SurfaceTriangle()
         {
             m_pos = new Vertex[] {new Vertex(), new Vertex(), new Vertex() };
@@ -215,7 +225,8 @@ namespace RayTracer
 
     class SurfaceQuad : Surface
     {
-
+        //TODO: This should be moved into a diffeerent class that this inherets from.
+        public Vertex[] m_pos;
         public SurfaceQuad()
         {
             m_pos = new Vertex[] {new Vertex(), new Vertex() , new Vertex() , new Vertex() } ; 
