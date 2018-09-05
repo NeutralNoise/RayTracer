@@ -34,19 +34,19 @@ namespace RayTracer
             SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
             mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
-            worldPlane.m_mat = mat;
+            worldPlane.SetMat(mat);
 
             SurfaceSphere worldSphere = new SurfaceSphere();
             Material smat = new Material();
             smat.SetColour(0.0f, 0.0f, 255.0f, 255.0f);
-            worldSphere.m_mat = smat;
+            worldSphere.SetMat(smat);
 
             SurfaceSphere worldSphere2 = new SurfaceSphere();
             worldSphere2.pos.m_x = 2.0f;
             
             Material smat2 = new Material();
             smat2.SetColour(0.0f, 255.0f, 0.0f, 255.0f);
-            worldSphere2.m_mat = smat2;
+            worldSphere2.SetMat(smat2);
 
             //Surface[] Walls = new Surface[] { worldPlane };
             Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 };

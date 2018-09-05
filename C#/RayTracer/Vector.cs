@@ -86,7 +86,7 @@ namespace RayTracer
 
                 if (closest != null)
                 {
-                    return closest.m_mat.GetColour();
+                    return closest.GetMat().GetColour();
                     {
                         /*
                         //Bounce off the surface then just fuck off
