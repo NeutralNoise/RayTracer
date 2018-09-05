@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Camera.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="Material.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
