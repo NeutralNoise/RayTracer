@@ -14,7 +14,7 @@ namespace RayTracer
             m_mat = new Material();
         }
 
-        public Material m_mat;
+        private Material m_mat;
 
         public virtual bool Intersect(Ray r, ref float dist)
         {
@@ -24,6 +24,16 @@ namespace RayTracer
         public virtual Ray Reflect(Vector vec, Vector normal)
         {
             return null;
+        }
+
+        public void SetMat(Material mat)
+        {
+            m_mat = mat;
+        }
+
+        public Material GetMat()
+        {
+            return m_mat;
         }
 
     }
