@@ -22,6 +22,11 @@ namespace RayTracer
             return m_colour;
         }
 
+        public Material(Material mat)
+        {
+            m_colour = mat.m_colour;
+        }
+
         public void SetColour(ColourRGBA colour)
         {
             m_colour = colour;
