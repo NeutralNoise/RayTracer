@@ -16,11 +16,12 @@ namespace RayTracer
 
         public class Ray
         {
-            static public UInt64 MaxBounce = 2;
+            static public UInt64 MaxBounce = 20;
+            static public ColourRGBA ColourWhite = new ColourRGBA(255.0f, 255.0f, 255.0f, 0.0f);
             static public ColourRGBA Nothing = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
-            static public ColourRGBA SkyColour = new ColourRGBA(255.0f, 0.0f, 125.0f, 255.0f);
-            static public Material SkyMaterial = new Material(Nothing, SkyColour);
-            //static public Material SkyMaterial = new Material(Nothing, Nothing);
+            static public ColourRGBA SkyColour = new ColourRGBA(255.0f, 125.0f, 125.0f, 255.0f);
+            static public Material SkyMaterial = new Material(SkyColour, SkyColour);
+            //static public Material SkyMaterial = new Material(SkyColour, Nothing);
         }
 
 

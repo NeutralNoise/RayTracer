@@ -31,9 +31,9 @@ namespace RayTracer
         public Vector dir;
 
 
-        public ColourRGBA Trace(Ray r, Surface[] quads, float c, ref Vector att, ref Vector result)
+        public ColourRGBA Trace(Ray r, Surface[] quads, Light[] lights, float c, ref Vector att, ref Vector result, ref bool hitLight)
         {
-
+            Light clight = null; //Current light
             if (c < Config.Ray.MaxBounce)
             {
                 Surface closest = null;
@@ -61,32 +61,48 @@ namespace RayTracer
                             }
                         }
                     }
+                }
+                //All we did was hit a light
+                foreach (Light l in lights)
+                {
+                    //Intersect with a light
+                    //TODO light intersections
+                    //Get distance from light to ray.
+                    float ldist = (float)SurfaceFunc.Vec3Distance(r.orgin, l.pos);
+
+                    //Check to see if the light is closer then the closest object.
+                    if(closest != null)
                     {
-                        /*
-                        Vector norm = SurfaceFunc.CalculateSurfaceNormal(quad.m_pos);
-                        norm.m_y = -norm.m_y;
-                        facing = norm.DotProduct(r.vec);
-                        if (closest == null)
+
+                        if(closestDist > ldist)
                         {
-                            if (facing <= Config.Tolerance && facing >= Config.MinTolerance)
+
+                            //Get the normal from the light to the ray orgin.
+                            Vector lNormal = (l.pos - r.orgin).Normalize();
+                            //Vector lNormal = (r.orgin - l.pos).Normalize();
+
+                            float dot = lNormal.DotProduct(r.dir.Normalize());
+                            //we have hit something
+                            //if(dot > 0 && dot < 0.04)
+                            if (dot > 0)
                             {
-                                normal = norm;
-                                closest = quad;
-                                dist = (float)SurfaceFunc.Vec3Distance(r.vec, norm);
+                                clight = l;
+                                //closest = null;
+                                hitLight = true;
                             }
                         }
-                        else
+                    }
+                    else
+                    {
+                        //Get the normal from the light to the ray orgin.
+                        Vector lNormal = (l.pos - r.orgin).Normalize();
+                        float dot = lNormal.DotProduct(r.dir.Normalize());
+                        //we have hit something
+                        if (dot > 0)
                         {
-                            if (facing <= Config.Tolerance && facing >= Config.MinTolerance)
-                            {
-                                if ((float)SurfaceFunc.Vec3Distance(r.vec, norm) < dist)
-                                {
-                                    dist = (float)SurfaceFunc.Vec3Distance(r.vec, norm);
-                                    closest = quad;
-                                }
-                            }
+                            clight = l;
+                            hitLight = true;
                         }
-                        */
                     }
                 }
 
@@ -103,9 +119,13 @@ namespace RayTracer
                         {
                             float af = 0;
                             result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref af).Normalize();
-                            result.Scale(255);
+                            //result.Scale(255);
                             return new ColourRGBA(result.Scale(255), af);
                         }
+
+                        //TODO: This is shit bro.
+                        closest.m_dist = closestDist;
+                        closest.m_lastRay = r;
 
                         normal = closest.CalculateSurfaceNormal();
 
@@ -130,57 +150,142 @@ namespace RayTracer
                             Environment.Exit(1);
                         }
 
-                        ColourRGBA resultColour;
-                        float a = 0; //this isn't used
-                        
-                        result += att * closest.GetMat().GetEmitColour().ColourToVector(ref a);
+
                         ColourRGBA rc = new ColourRGBA(closest.GetMat().GetColour());
                         rc.Normalize();
-                        att = att * rc.ColourToVector(ref a);
-                        ray.Trace(ray, quads, c + 1, ref att, ref result);
-                        resultColour = new ColourRGBA(result, a);
-                        /*
-                        if (bounceColour == null) {
-                            //we have hit the sky
-                            bounceColour = Config.Ray.SkyColour;
-                        }
+                        //Vector d = closest.CalculateSurfaceNormal().Scale(ray.orgin.DotProduct(closest.CalculateSurfaceNormal()));
                         
-                        //ColourRGBA mat = new ColourRGBA(0, 0, 255, 255);
-                        ColourRGBA mat = closest.GetMat().GetColour();
+                        Vector cosine = new Vector(1, 1, 1);
 
-                        //Convert the colour to a Vec 3
-                        Vector vc = new Vector(mat.r, mat.g, mat.b);
-                        float trans = mat.a;
-
-                        Vector vc2 = new Vector(bounceColour.r, bounceColour.g, bounceColour.b);
-                        trans = bounceColour.a + trans;
-
-                        //Clamp the transperancy
-                        if(trans > 255)
+                        //for each light wee need to check if there is anything in the way the new ray orgin and the light.
+                        //check to see if this position has a visable light.
+                        foreach (Light ls in lights)
                         {
-                            trans = 255;
+                            bool lightBlocker = false;
+                            foreach(Surface s in quads)
+                            {
+                                float ld = 0;
+                                Vector sl = (ls.pos - ray.orgin).Normalize();
+                                Ray lsr = new Ray(ray.orgin, sl);
+                                if (s.Intersect(lsr, ref ld)) {
+                                    if (ld > 0.01)
+                                    {
+                                        lightBlocker = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            //check if there was a light blocker and if not add lighting to the ray point.
+                            if (!lightBlocker)
+                            {
+                                //Get the distance to the light so we know if its hitting us.
+                                float lightPointDist = (float)SurfaceFunc.Vec3Distance(ray.orgin, ls.pos);
+
+                                if (lightPointDist < 1000)
+                                {
+
+                                    float la = 255.0f;
+                                    ColourRGBA lColour = new ColourRGBA(ls.mat.GetColour());
+                                    lColour.Normalize();
+                                    Vector normColour = closest.GetMat().GetColour().ColourToVector(ref la) * lColour.ColourToVector(ref la);
+                                    ColourRGBA nColour = new ColourRGBA(normColour, la);
+                                    nColour.Normalize();
+                                    normColour = nColour.ColourToVector(ref la);
+                                    //int fdsfs = 9;
+                                    //result += att * closest.GetMat().GetColour().ColourToVector(ref la).Scale(closest.GetMat().reflect);
+                                    normColour = normColour.Scale(255);
+                                    result += att * normColour.Scale(closest.GetMat().reflect);
+                                    ColourRGBA tmpColour = new ColourRGBA(result, la);
+                                    tmpColour.Normalize();
+                                    result = tmpColour.ColourToVector(ref la);
+                                    //result += att * normColour.Scale(1.0f);
+                                    normColour = nColour.ColourToVector(ref la);
+                                    //Vector sl = (ray.orgin - ls.pos).Normalize();
+                                    Vector lightNormal = (ray.orgin - ls.pos).Normalize();
+                                    Vector d = lightNormal.Scale(ray.orgin.DotProduct(lightNormal));
+                                    //Vector cosine = (d.Scale(2) - ray.orgin).Normalize();
+                                    att = att * (cosine * normColour).Normalize();
+                                }
+                            }
+                            else
+                            {
+                                float bds = 255;
+                                att = att * (1 * rc.ColourToVector(ref bds));//cosin * rc.ColourToVector(ref bds));
+                                /*
+                                if(att.m_x < 0)
+                                {
+                                    att.m_x = 0;
+                                }
+                                if (att.m_y < 0)
+                                {
+                                    att.m_y = 0;
+                                }
+                                if (att.m_z < 0)
+                                {
+                                    att.m_z = 0;
+                                }
+                                */
+                                //return Config.Ray.Nothing;
+                            }
+
                         }
-                        else if (trans < 0)
-                        {
-                            trans = 0;
-                        }
+
+                        float a = 255; //this isn't used
+                        float b = 0;
+                        //result += att * closest.GetMat().GetColour().ColourToVector(ref a).Scale(closest.GetMat().reflect);
+                        //ColourRGBA rc = new ColourRGBA(closest.GetMat().GetColour());
+                        //rc.Normalize();
+
                         
-                        Vector cnorm = (vc + vc2).Normalize();
+                        //att = att * rc.ColourToVector(ref a);
 
-                        cnorm  = cnorm.Scale(255.0f);
+                        //Vector d = closest.CalculateSurfaceNormal().Scale(ray.orgin.DotProduct(closest.CalculateSurfaceNormal()));
+                        //Vector pureBounce = SurfaceFunc.Reflect(ray.dir, closest.CalculateSurfaceNormal());
+                        //float ba = r.dir.DotProduct(r.dir - ray.orgin);
+                        //float ba = r.dir.DotProduct(r.dir);
+                        //TODO: Cosin
+                        //TODO: A better cosin
+                        //Vector cosine = (d.Scale(2) - ray.orgin);
+                        //Vector cosine = new Vector(1, 1, 1);
+                        //float cosine = (float)Math.Cos(ba);
+                        //float cosine = closest.CalculateSurfaceNormal().DotProduct(r.dir);
 
-                        bounceColour = new ColourRGBA(cnorm.m_x, cnorm.m_y, cnorm.m_z, trans);
-                        */
-                        //return bounceColour;
-                        return resultColour;
+                        //att = att * (cosine * rc.ColourToVector(ref b));
+
+                        //att = att * (ray.dir.DotProduct(closest.CalculateSurfaceNormal()) * rc.ColourToVector(ref a)).Normalize();
+                        //att = att * (ray.dir.DotProduct(closest.CalculateSurfaceNormal()) * rc.ColourToVector(ref a).Normalize());
+
+                        ray.Trace(ray, quads, lights, c + 1, ref att, ref result, ref hitLight);
+                        return new ColourRGBA(result, a);
                     }
                 }
+                /*
+                else if(clight != null)
+                {
+                    if ((c + 1) > Config.Ray.MaxBounce)
+                    {
+                        float af = 0;
+                        ColourRGBA testCo = new ColourRGBA(0.0f, 255.0f, 0.0f, 255.0f);
+                        //result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref af).Normalize();
+                        //result.Scale(255);
+                        return new ColourRGBA(result.Scale(255), af);
+                    }
+                    float a = 255;
+                    result += att * clight.mat.GetEmitColour().ColourToVector(ref a).Normalize();
+ 
+                    //result += att * clight.mat.GetColour().ColourToVector(ref a).Normalize();
+                    //result.Scale(255);
+                    //return new ColourRGBA(result.Scale(255), a);
+                    return new ColourRGBA(result, a);
+                }*/
                 else
                 {
-                    float a = 0;
-                    result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref a).Normalize();
-                    result.Scale(255);
-                    return new ColourRGBA(result.Scale(255), a);
+                    //float a = 0;
+                    //The sky is not emitting a colour is has a colour tho
+                    //result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref a).Normalize();
+                    //result += att * Config.Ray.SkyMaterial.GetColour().ColourToVector(ref a).Normalize();
+                    //result += att * Config.Ray.Nothing.ColourToVector(ref a).Normalize();
+                    return new ColourRGBA(result, 255);
                 }
             }
             
@@ -195,7 +300,9 @@ namespace RayTracer
 
         public Vector()
         {
-
+            m_x = 0;
+            m_y = 0;
+            m_z = 0;
         }
 
         public Vector(float x, float y, float z)
@@ -394,6 +501,11 @@ namespace RayTracer
 
             return new Vector(x, y, z);
             //return (1 - t) * v0 + t * v1;
+        }
+
+        public Vector Negitve()
+        {
+            return new Vector(-m_x, -m_y, -m_z);
         }
 
     }

@@ -9,6 +9,31 @@ namespace RayTracer
 {
     class Program
     {
+        //Gamma Correction
+        //TODO move this
+        static private float Lin2srgb(float L)
+        {
+            if(L < 0)
+            {
+                L = 0;
+            }
+            if(L > 1)
+            {
+                L = 1;
+            }
+            float magicsrgb = 0.0031308f;
+            float magicsrgb2 = 12.92f;
+            float S = 0;
+            if (L <= magicsrgb)
+            {
+                S = L * magicsrgb2;
+            }
+            else
+            {
+                S = 1.055f * (float)Math.Pow(L, 1.0f / 2.4) - 0.055f;
+            }
+            return S;
+        }
 
         //static private int Width = 3840;
         //static private int Height = 2160;
@@ -16,9 +41,22 @@ namespace RayTracer
         //static private int Height = 720;
         static private int Width = 300;
         static private int Height = 300;
+        //static private int Width = 10;
+        //static private int Height = 10;
 
+        static private int rpp = 20; // Ray Per Pixel
 
-        static private int rpp = 1; // Ray Per Pixel
+        static ColourRGBA whiteLight = new ColourRGBA(255, 255, 255, 255);
+        static ColourRGBA greenLight = new ColourRGBA(255 / 2, 255, 255 / 2, 255);
+        static ColourRGBA gray = new ColourRGBA(255 / 255 / 2, 255, 255 / 2, 255);
+
+        static Vector lightPos = new Vector(5, -9, 5);
+
+        static Material whiteLightMat = new Material(whiteLight, whiteLight);
+
+        static Light mainLight = new Light(lightPos, new Vector(), whiteLightMat);
+
+        static Light[] lights = new Light[] { mainLight };
 
         static void Main(string[] args)
         {
@@ -34,15 +72,20 @@ namespace RayTracer
             SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
             mat.SetColour(255.0f, 125.0f, 136.0f, 255.0f);
-            mat.reflect = Helpers.Rand.RandomBilateral();
+            //mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
+            mat.reflect = 0.1f;
             //mat.SetEmitColour(255.0f, 125.0f, 136.0f, 255.0f);
             worldPlane.SetMat(mat);
 
             SurfaceSphere worldSphere = new SurfaceSphere();
             Material smat = new Material();
-            smat.SetColour(220.0f, 200.0f, 255.0f, 255.0f);
+            //smat.SetColour(220.0f, 200.0f, 255.0f, 255.0f);
+            //smat.SetColour(512.0f, 0.0f, 0.0f, 255.0f);
+            //smat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
+            smat.SetColour(0.0f, 0.0f, 255.0f, 255.0f);
             //smat.reflect = Helpers.Rand.RandomBilateral();
             //smat.SetEmitColour(255.0f, 255.0f, 255.0f, 255.0f);
+            smat.SetEmitColour(0.0f, 0.0f, 255.0f, 0.0f);
             worldSphere.SetMat(smat);
 
             SurfaceSphere worldSphere2 = new SurfaceSphere();
@@ -52,6 +95,7 @@ namespace RayTracer
 
             Material smat2 = new Material();
             smat2.SetColour(125.0f, 255.0f, 125.0f, 255.0f);
+            //smat2.SetColour(128,128,128,255);
             //smat2.reflect = Helpers.Rand.RandomBilateral();
             worldSphere2.SetMat(smat2);
 
@@ -120,56 +164,74 @@ namespace RayTracer
                 count++;
                 Console.Write("Count: " + count.ToString() + "\r");
                 UInt64 rayCount = 0;
+                float RayColourContrib = 1.0f / rpp;
+
+                float testRays = RayColourContrib * rpp;
 
                 //Start casting rays
-                for (int r = 0; r < rpp; r++)
+                for (int x = 0; x < Width; x++)
                 {
-                    for (int x = 0; x < Width; x++)
+                    for (int y = 0; y < Height; y++)
                     {
-                        for (int y = 0; y < Height; y++)
+                        //Work out where we are casting this ray from.
+                        float filmX = -1.0f + 2.0f * ((float)x / (float)Width); ;
+                        float filmY = -1.0f + 2.0f * ((float)y / (float)Height);
+
+                        Vector filmP = FilmCenter + filmX * halffilmW * camera.m_rotation.CameraX + filmY * halffilmH * camera.m_rotation.CameraY;
+
+                        Ray ray = new Ray();
+                        ray.orgin = camera.GetPositon();
+                        ray.dir = (filmP - camera.GetPositon());
+
+                        //Vector result = new Vector(0.0f, 0.0f, 0.0f);
+                        
+                        float a = 0;
+                        Vector rayColour = new Vector();
+                        //build up our colour
+                        for (int r = 0; r < rpp; r++)
                         {
-                            //Work out where we are casting this ray from.
-                            float filmX = -1.0f + 2.0f * ((float)x / (float)Width); ;
-                            float filmY = -1.0f + 2.0f * ((float)y / (float)Height);
-
-                            Vector filmP = FilmCenter + filmX * halffilmW * camera.m_rotation.CameraX + filmY * halffilmH * camera.m_rotation.CameraY;
-
-                            Ray ray = new Ray();
-                            ray.orgin = camera.GetPositon();
-                            ray.dir = (filmP - camera.GetPositon());
                             Vector att = new Vector(1.0f, 1.0f, 1.0f);
                             Vector result = new Vector(0.0f, 0.0f, 0.0f);
-                            ColourRGBA colour = ray.Trace(ray, Walls, 0, ref att, ref result);
+                            bool hitLight = false;
+                            rayColour += RayColourContrib * (ray.Trace(ray, Walls, lights, 0, ref att, ref result, ref hitLight).ColourToVector(ref a));
                             rayCount++;
-
-                            if(!looped)
-                            {
-                                float p = (float)rayCount / (float)((Width * Height) * rpp);
-                                Console.Write(((int)(p * 100)).ToString() + " perenct complete\r");
-                            }
-                            //Nothing intersects with this ray so black
-                            if(colour == null)
-                            {
-                                //colour = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
-                                colour = Config.Ray.SkyColour;
-                            }
-                            else
-                            {
-                                colour.Scale(255);
-                                colour.Clamp();
-
-                            }
-                            //Convert our colour to a colour windows C# understands
-                            Color wColour = Color.FromArgb((int)colour.a, (int)colour.r, (int)colour.g, (int)colour.b);
-
-                            //If its not black we hit something
-                            if (colour.r != 0 || colour.g != 0 || colour.b != 0)
-                            {
-                                thc++;
-                            }
-
-                            img.SetPixel(x, y, wColour);
                         }
+                        //ColourRGBA colour = ray.Trace(ray, Walls, 0, ref att, ref result);
+                        //rayColour.Normalize
+                        ColourRGBA colour = new ColourRGBA(rayColour, a);
+                        if(!looped)
+                        {
+                            float p = (float)rayCount / (float)((Width * Height) * rpp);
+                            Console.Write(((int)(p * 100)).ToString() + " perenct complete\r");
+                        }
+                        //Nothing intersects with this ray so black
+                        if(colour == null)
+                        {
+                            //colour = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
+                            colour = Config.Ray.SkyColour;
+                        }
+                        else
+                        {
+                            //Correct the gamma.
+                            colour.r = Lin2srgb(colour.r);
+                            colour.g = Lin2srgb(colour.g);
+                            colour.b = Lin2srgb(colour.b);
+                            //colour.Normalize();
+                            colour.Scale(255);
+                            colour.Clamp();
+
+
+                        }
+                        //Convert our colour to a colour windows C# understands
+                        Color wColour = Color.FromArgb((int)colour.a, (int)colour.r, (int)colour.g, (int)colour.b);
+
+                        //If its not black we hit something
+                        if (colour.r != 0 || colour.g != 0 || colour.b != 0)
+                        {
+                            thc++;
+                        }
+
+                        img.SetPixel(x, y, wColour);
                     }
                 }
 
@@ -186,14 +248,14 @@ namespace RayTracer
                         Console.WriteLine("");
                         //Console.Write("Hits: " + thc.ToString() + "_y_" + camera.GetPositon().m_y.ToString() + "\n");
                         Console.Write("Hits: " + thc.ToString() + "\n");
-                        worldSphere.pos.PrintVector();
+                        //worldSphere.pos.PrintVector();
                         Console.Write("\n");
                     }
                     else
                     {
-                        Console.Write("Count: " + count.ToString() + " Hits: " + thc.ToString() + "_y_" + camera.GetPositon().m_y.ToString() + "\n");
+                        Console.Write("Count: " + count.ToString() + " Hits: " + thc.ToString() + "\n");
                     }
-                    img.Save("hit/hit_" + thc.ToString() + "_c_" + count.ToString() + "_y_" + camera.GetPositon().m_y.ToString() + ".bmp");
+                    img.Save("hit/hit_" + thc.ToString() + "_c_" + count.ToString() + ".bmp");
                 }
 
             }

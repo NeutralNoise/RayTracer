@@ -15,7 +15,9 @@ namespace RayTracer
         }
 
         protected Material m_mat;
-
+        //TODO: remove these.
+        public float m_dist; //Distance from casting orgin. This is updated every ray.
+        public Ray m_lastRay;
         public virtual bool Intersect(Ray r, ref float dist)
         {
             return false;
@@ -185,7 +187,7 @@ namespace RayTracer
 
         public override Vector CalculateSurfaceNormal()
         {
-            return new Vector();
+            return new Vector((m_dist * m_lastRay.dir + (m_lastRay.orgin - pos)).Normalize());
         }
 
     }
