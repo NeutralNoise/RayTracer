@@ -63,5 +63,6 @@ namespace RayTracer
         private ColourRGBA m_colour;
         private ColourRGBA m_emitColour;
         public float reflect = 1.0f;
+        public ColourRGBA disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }

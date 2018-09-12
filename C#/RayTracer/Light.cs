@@ -13,27 +13,27 @@ namespace RayTracer
         {
             pos = new Vector(0, 0,0);
             dir = new Vector(0, 0,0);
-            mat = new Material(new ColourRGBA(255, 255, 255, 255), new ColourRGBA(255, 255, 255, 255));
+            intesity = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
         public Light(Vector pos, Vector dir)
         {
             this.pos = pos;
             this.dir = dir;
-            mat = new Material(new ColourRGBA(255, 255, 255, 255), new ColourRGBA(255, 255, 255, 255));
+            intesity = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         }
 
-        public Light(Vector pos, Vector dir, Material mat)
+        public Light(Vector pos, Vector dir, ColourRGBA intesity)
         {
             this.pos = pos;
             this.dir = dir;
-            this.mat = mat;
+            this.intesity = intesity;
         }
 
         public Vector pos;
         public Vector dir;
-
-        public Material mat;
+        public ColourRGBA intesity;
+        //public Material mat;
 
     }
 }
