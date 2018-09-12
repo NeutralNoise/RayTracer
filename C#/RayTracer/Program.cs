@@ -44,17 +44,18 @@ namespace RayTracer
         //static private int Width = 10;
         //static private int Height = 10;
 
-        static private int rpp = 20; // Ray Per Pixel
+        //static private int rpp = int.MaxValue / (3840*2160); // Ray Per Pixel
+        static private int rpp = 1;
 
-        static ColourRGBA whiteLight = new ColourRGBA(255, 255, 255, 255);
+        static ColourRGBA whiteLight = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         static ColourRGBA greenLight = new ColourRGBA(255 / 2, 255, 255 / 2, 255);
         static ColourRGBA gray = new ColourRGBA(255 / 255 / 2, 255, 255 / 2, 255);
 
         static Vector lightPos = new Vector(5, -9, 5);
 
-        static Material whiteLightMat = new Material(whiteLight, whiteLight);
+        static Material whiteLightMat = new Material(1, whiteLight);
 
-        static Light mainLight = new Light(lightPos, new Vector(), whiteLightMat);
+        static Light mainLight = new Light(lightPos, new Vector());
 
         static Light[] lights = new Light[] { mainLight };
 
@@ -71,7 +72,8 @@ namespace RayTracer
 
             SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
-            mat.SetColour(255.0f, 125.0f, 136.0f, 255.0f);
+            mat.disfuse = new ColourRGBA(255.0f, 125.0f, 136.0f, 255.0f);
+            mat.disfuse.Normalize();
             //mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
             mat.reflect = 0.1f;
             //mat.SetEmitColour(255.0f, 125.0f, 136.0f, 255.0f);
@@ -79,13 +81,7 @@ namespace RayTracer
 
             SurfaceSphere worldSphere = new SurfaceSphere();
             Material smat = new Material();
-            //smat.SetColour(220.0f, 200.0f, 255.0f, 255.0f);
-            //smat.SetColour(512.0f, 0.0f, 0.0f, 255.0f);
-            //smat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
-            smat.SetColour(0.0f, 0.0f, 255.0f, 255.0f);
-            //smat.reflect = Helpers.Rand.RandomBilateral();
-            //smat.SetEmitColour(255.0f, 255.0f, 255.0f, 255.0f);
-            smat.SetEmitColour(0.0f, 0.0f, 255.0f, 0.0f);
+            smat.disfuse = new ColourRGBA(0.0f, 0.0f, 1.0f, 0.0f);
             worldSphere.SetMat(smat);
 
             SurfaceSphere worldSphere2 = new SurfaceSphere();
@@ -94,7 +90,7 @@ namespace RayTracer
             worldSphere2.pos.m_z = 2.0f;
 
             Material smat2 = new Material();
-            smat2.SetColour(125.0f, 255.0f, 125.0f, 255.0f);
+            smat2.disfuse = new ColourRGBA(0.5f, 1.0f, 0.5f, 1.0f);
             //smat2.SetColour(128,128,128,255);
             //smat2.reflect = Helpers.Rand.RandomBilateral();
             worldSphere2.SetMat(smat2);

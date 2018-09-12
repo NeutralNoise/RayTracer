@@ -10,58 +10,27 @@ namespace RayTracer
     {
         public Material()
         {
-            m_colour = new ColourRGBA();
-            m_emitColour = new ColourRGBA(0, 0, 0, 255);
+            reflect = 0.0f;
+            disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         }
         public Material(float r, float g, float b, float a)
         {
-            m_colour = new ColourRGBA(r,g,b,a);
-            m_emitColour = new ColourRGBA(0, 0, 0, 255);
+            reflect = 1.0f;
+            disfuse = new ColourRGBA(r, b, b, a);
         }
 
-        public Material(ColourRGBA c, ColourRGBA ec)
+        public Material(float r, ColourRGBA d)
         {
-            m_colour = c;
-            m_emitColour = ec;
-        }
-
-        public ColourRGBA GetColour()
-        {
-            return m_colour;
-        }
-
-        public ColourRGBA GetEmitColour()
-        {
-            return m_emitColour;
+            reflect = r;
+            disfuse = d;
         }
 
         public Material(Material mat)
         {
-            m_colour = mat.m_colour;
+            reflect = mat.reflect;
+            disfuse = mat.disfuse;
         }
 
-        public void SetEmitColour(ColourRGBA colour)
-        {
-            m_emitColour = colour;
-        }
-
-        public void SetEmitColour(float r, float g, float b, float a)
-        {
-            m_emitColour.SetColour(r, g, b, a);
-        }
-
-        public void SetColour(ColourRGBA colour)
-        {
-            m_colour = colour;
-        }
-
-        public void SetColour(float r, float g, float b, float a)
-        {
-            m_colour.SetColour(r, g, b, a);
-        }
-
-        private ColourRGBA m_colour;
-        private ColourRGBA m_emitColour;
         public float reflect = 1.0f;
         public ColourRGBA disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
     }

@@ -73,10 +73,7 @@ namespace RayTracer
 
                         if ((c + 1) > Config.Ray.MaxBounce)
                         {
-                            float af = 0;
-                            result += att * Config.Ray.SkyMaterial.GetEmitColour().ColourToVector(ref af).Normalize();
-                            //result.Scale(255);
-                            return new ColourRGBA(result.Scale(255), af);
+                            return new ColourRGBA(result, 255);
                         }
 
                         //TODO: This is shit bro.
@@ -106,15 +103,10 @@ namespace RayTracer
                             Environment.Exit(1);
                         }
 
-
-                        ColourRGBA rc = new ColourRGBA(closest.GetMat().GetColour());
-                        rc.Normalize();
-                        //Vector d = closest.CalculateSurfaceNormal().Scale(ray.orgin.DotProduct(closest.CalculateSurfaceNormal()));
-
                         Vector cosine = new Vector(1, 1, 1);
                         float coef = 1.0f;
                         Ray lsr = null;
-                        //for each light wee need to check if there is anything in the way the new ray orgin and the light.
+                        //for each light we need to check if there is anything in the way the new ray orgin and the light.
                         //check to see if this position has a visable light.
                         foreach (Light ls in lights)
                         {
