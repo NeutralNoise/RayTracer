@@ -10,7 +10,7 @@ namespace RayTracer
     {
         public Material()
         {
-            reflect = 0.0f;
+            reflect = 1.0f;
             disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         }
         public Material(float r, float g, float b, float a)
@@ -31,7 +31,7 @@ namespace RayTracer
             disfuse = mat.disfuse;
         }
 
-        public float reflect = 1.0f;
+        public float reflect;
         public ColourRGBA disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }
