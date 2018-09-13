@@ -20,7 +20,7 @@ namespace RayTracer
             static public ColourRGBA ColourWhite = new ColourRGBA(255.0f, 255.0f, 255.0f, 0.0f);
             static public ColourRGBA Nothing = new ColourRGBA(0.0f, 0.0f, 0.0f, 255.0f);
             static public ColourRGBA SkyColour = new ColourRGBA(255.0f, 125.0f, 125.0f, 255.0f);
-            static public Material SkyMaterial = new Material(SkyColour, SkyColour);
+            //static public Material SkyMaterial = new Material(SkyColour, SkyColour);
             //static public Material SkyMaterial = new Material(SkyColour, Nothing);
         }
 
