@@ -44,8 +44,9 @@ namespace RayTracer
         //static private int Width = 10;
         //static private int Height = 10;
 
-        //static private int rpp = int.MaxValue / (3840*2160); // Ray Per Pixel
-        static private int rpp = 1;
+        //static private UInt64 rpp = int.MaxValue / (3840*2160); // Ray Per Pixel
+        static private UInt64 rpp = 1;
+        //static private UInt64 rpp = (UInt64)(int.MaxValue / (Width * Height)); // Ray Per Pixel
 
         static ColourRGBA whiteLight = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
         static ColourRGBA greenLight = new ColourRGBA(255 / 2, 255, 255 / 2, 255);
@@ -94,7 +95,7 @@ namespace RayTracer
             Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 };
 
             Console.WriteLine("Casting Rays");
-            Console.WriteLine("Casting: " + ((Width * Height) * rpp).ToString() + " rays!");
+            Console.WriteLine("Casting: " + ((UInt64)(Width * Height) * rpp).ToString() + " rays!");
 
             //Image to save
             Bitmap img = new Bitmap(Width, Height);
@@ -180,7 +181,7 @@ namespace RayTracer
                         float a = 0;
                         Vector rayColour = new Vector();
                         //build up our colour
-                        for (int r = 0; r < rpp; r++)
+                        for (UInt64 r = 0; r < rpp; r++)
                         {
                             Vector att = new Vector(1.0f, 1.0f, 1.0f);
                             Vector result = new Vector(0.0f, 0.0f, 0.0f);
@@ -193,7 +194,7 @@ namespace RayTracer
                         ColourRGBA colour = new ColourRGBA(rayColour, a);
                         if(!looped)
                         {
-                            float p = (float)rayCount / (float)((Width * Height) * rpp);
+                            float p = (float)rayCount / (float)((UInt64)(Width * Height) * rpp);
                             Console.Write(((int)(p * 100)).ToString() + " perenct complete\r");
                         }
                         //Nothing intersects with this ray so black
