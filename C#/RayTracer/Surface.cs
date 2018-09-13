@@ -181,7 +181,7 @@ namespace RayTracer
             Vector nextOrgin = new Vector(ray.orgin + dist * ray.dir);
             //Vector nextNormal = (nextOrgin - this.pos).Normalize();
             Vector nextNormal = (dist * ray.dir + (ray.orgin - pos)).Normalize();
-
+            nextOrgin = nextOrgin + nextNormal * 0.01f;
             return SurfaceFunc.Reflect(m_mat, nextOrgin, ray.dir, nextNormal);
         }
 
