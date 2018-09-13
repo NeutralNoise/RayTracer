@@ -123,7 +123,9 @@ namespace RayTracer
             float halffilmH = 0.5f * filmH;
 
             bool looped = false;
-
+            DateTime startTime = DateTime.Now;
+            Console.Write("Render Started: ");
+            Console.WriteLine(startTime.ToString());
             UInt64 hc = 0;
             UInt64 count = 0;
             while (!hit && !exit)
@@ -261,7 +263,10 @@ namespace RayTracer
             {
                 img.Save("shit.bmp");
             }
+            DateTime endTime = DateTime.Now;
             Console.WriteLine("Saved Image");
+            Console.Write("Image render completed in(h.m.s):");
+            Console.WriteLine((endTime - startTime).ToString());
             Console.ReadKey();
 
         }
