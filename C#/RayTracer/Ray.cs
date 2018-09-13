@@ -68,14 +68,6 @@ namespace RayTracer
                     {
 
                         //Bounce off the surface then just fuck off
-                        //Ray ray = new Ray(SurfaceFunc.Reflect(r.vec, normal));
-
-
-                        if ((c + 1) > Config.Ray.MaxBounce)
-                        {
-                            return new ColourRGBA(result, 255);
-                        }
-
                         //TODO: This is shit bro.
                         closest.m_dist = closestDist;
                         closest.m_lastRay = r;

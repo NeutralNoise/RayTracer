@@ -74,9 +74,7 @@ namespace RayTracer
             Material mat = new Material();
             mat.disfuse = new ColourRGBA(255.0f, 125.0f, 136.0f, 255.0f);
             mat.disfuse.Normalize();
-            //mat.SetColour(255.0f, 0.0f, 0.0f, 255.0f);
             mat.reflect = 0.1f;
-            //mat.SetEmitColour(255.0f, 125.0f, 136.0f, 255.0f);
             worldPlane.SetMat(mat);
 
             SurfaceSphere worldSphere = new SurfaceSphere();
@@ -91,11 +89,8 @@ namespace RayTracer
 
             Material smat2 = new Material();
             smat2.disfuse = new ColourRGBA(0.5f, 1.0f, 0.5f, 1.0f);
-            //smat2.SetColour(128,128,128,255);
-            //smat2.reflect = Helpers.Rand.RandomBilateral();
             worldSphere2.SetMat(smat2);
 
-            //Surface[] Walls = new Surface[] { worldPlane };
             Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 };
 
             Console.WriteLine("Casting Rays");
@@ -106,7 +101,6 @@ namespace RayTracer
             Bitmap highestHits = new Bitmap(Width, Height);
 
             //Cast the ray
-            //Uncomment this if you want more rays per pixel
             bool hit = false;
             bool exit = false;
 
@@ -209,9 +203,11 @@ namespace RayTracer
                         else
                         {
                             //Correct the gamma.
+                            /*
                             colour.r = Lin2srgb(colour.r);
                             colour.g = Lin2srgb(colour.g);
                             colour.b = Lin2srgb(colour.b);
+                            */
                             //colour.Normalize();
                             colour.Scale(255);
                             colour.Clamp();
