@@ -30,7 +30,7 @@ namespace RayTracer
         public Vector dir;
 
 
-        public ColourRGBA Trace(Ray r, Surface[] quads, Light[] lights, float c, ref Vector att, ref Vector result, ref bool hitLight)
+        public ColourRGBA Trace(Ray r, Surface[] quads, Light[] lights, float c, ref float coef, ref Vector result, ref bool hitLight)
         {
             if (c < Config.Ray.MaxBounce)
             {
@@ -95,8 +95,6 @@ namespace RayTracer
                             Environment.Exit(1);
                         }
 
-                        Vector cosine = new Vector(1, 1, 1);
-                        float coef = 1.0f;
                         Ray lsr = null;
                         //for each light we need to check if there is anything in the way the new ray orgin and the light.
                         //check to see if this position has a visable light.
@@ -122,8 +120,8 @@ namespace RayTracer
                             if (!lightBlocker)
                             {
                                 //Get the distance to the light so we know if its hitting us.
-                                float lightPointDist = (float)SurfaceFunc.Vec3Distance(ray.orgin, ls.pos);
-                                
+                                //float lightPointDist = (float)SurfaceFunc.Vec3Distance(ray.orgin, ls.pos);
+                                /*
                                 if (lightPointDist < 1000)
                                 {
                                     float lambert = 0;
@@ -140,17 +138,24 @@ namespace RayTracer
                                     result.m_y += lambert * ls.intesity.g * closest.GetMat().disfuse.g;
                                     result.m_z += lambert * ls.intesity.b * closest.GetMat().disfuse.b;
                                 }
-                            }
-                            coef *= closest.GetMat().reflect;
+                                */
 
-                            if(coef < 0.0f)
+                                float lambert = lsr.dir.DotProduct(closest.CalculateSurfaceNormal()) * coef;
+                                //float lambert = 1.0f;
+                                //Lambert disfuseion
+                                result.m_x += lambert * ls.intesity.r * closest.GetMat().disfuse.r;
+                                result.m_y += lambert * ls.intesity.g * closest.GetMat().disfuse.g;
+                                result.m_z += lambert * ls.intesity.b * closest.GetMat().disfuse.b;
+                            }
+
+                            coef *= closest.GetMat().reflect;
+                            if (coef < 0.0f)
                             {
                                 break;
                             }
 
                         }
-
-                        ray.Trace(ray, quads, lights, c + 1, ref att, ref result, ref hitLight);
+                        ray.Trace(ray, quads, lights, c + 1, ref coef, ref result, ref hitLight);
                         return new ColourRGBA(result, 255);
                     }
                 }
