@@ -35,17 +35,17 @@ namespace RayTracer
             return S;
         }
 
-        //static private int Width = 3840;
-        //static private int Height = 2160;
+        static private int Width = 3840;
+        static private int Height = 2160;
         //static private int Width = 1280;
         //static private int Height = 720;
-        static private int Width = 300;
-        static private int Height = 300;
+        //static private int Width = 300;
+        //static private int Height = 300;
         //static private int Width = 10;
         //static private int Height = 10;
 
         //static private UInt64 rpp = int.MaxValue / (3840*2160); // Ray Per Pixel
-        static private UInt64 rpp = 1;
+        static private UInt64 rpp = 16;
         //static private UInt64 rpp = (UInt64)(int.MaxValue / (Width * Height)); // Ray Per Pixel
 
         static ColourRGBA whiteLight = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
@@ -53,8 +53,6 @@ namespace RayTracer
         static ColourRGBA gray = new ColourRGBA(255 / 255 / 2, 255, 255 / 2, 255);
 
         static Vector lightPos = new Vector(5, -9, 5);
-
-        static Material whiteLightMat = new Material(1, whiteLight);
 
         static Light mainLight = new Light(lightPos, new Vector());
 
@@ -74,13 +72,15 @@ namespace RayTracer
             SurfacePlane worldPlane = new SurfacePlane();
             Material mat = new Material();
             mat.disfuse = new ColourRGBA(255.0f, 125.0f, 136.0f, 255.0f);
+            //mat.disfuse = new ColourRGBA(1.0f, 1.0f, 1.0f, 1.0f);
             mat.disfuse.Normalize();
             mat.reflect = 0.1f;
             worldPlane.SetMat(mat);
 
             SurfaceSphere worldSphere = new SurfaceSphere();
             Material smat = new Material();
-            smat.disfuse = new ColourRGBA(0.0f, 0.0f, 1.0f, 0.0f);
+            smat.disfuse = new ColourRGBA(0.0f, 0.0f, 1.0f, 1.0f);
+            smat.reflect = 0.9f;
             worldSphere.SetMat(smat);
 
             SurfaceSphere worldSphere2 = new SurfaceSphere();
@@ -88,11 +88,29 @@ namespace RayTracer
             worldSphere2.pos.m_y = -2.0f;
             worldSphere2.pos.m_z = 2.0f;
 
+            SurfaceSphere worldSphere3 = new SurfaceSphere();
+            worldSphere3.pos.m_x = 2.0f;
+            worldSphere3.pos.m_y = -2.0f;
+            worldSphere3.pos.m_z = 2.0f;
+
+            SurfaceSphere worldSphere4 = new SurfaceSphere();
+            worldSphere4.pos.m_x = 0.0f;
+            worldSphere4.pos.m_y = 2.0f;
+            worldSphere4.pos.m_z = 2.0f;
+
             Material smat2 = new Material();
             smat2.disfuse = new ColourRGBA(0.5f, 1.0f, 0.5f, 1.0f);
-            worldSphere2.SetMat(smat2);
+            //smat2.reflect = 0.5f;
 
-            Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 };
+            Material smat3 = new Material();
+            smat3.disfuse = new ColourRGBA(0.5f, 0.5f, 0.5f, 1.0f);
+            
+
+            worldSphere2.SetMat(smat2);
+            worldSphere3.SetMat(smat2);
+            worldSphere4.SetMat(smat3);
+
+            Surface[] Walls = new Surface[] { worldPlane, worldSphere, worldSphere2 , worldSphere3 };
 
             Console.WriteLine("Casting Rays");
             Console.WriteLine("Casting: " + ((UInt64)(Width * Height) * rpp).ToString() + " rays!");
@@ -159,8 +177,11 @@ namespace RayTracer
                 UInt64 rayCount = 0;
                 float RayColourContrib = 1.0f / rpp;
 
-                float testRays = RayColourContrib * rpp;
+                float halfPixW = 0.5f / Width;
+                float halfPixH = 0.5f / Height;
 
+                float testRays = RayColourContrib * rpp;
+                Ray ray = new Ray();
                 //Start casting rays
                 for (int x = 0; x < Width; x++)
                 {
@@ -170,23 +191,28 @@ namespace RayTracer
                         float filmX = -1.0f + 2.0f * ((float)x / (float)Width); ;
                         float filmY = -1.0f + 2.0f * ((float)y / (float)Height);
 
-                        Vector filmP = FilmCenter + filmX * halffilmW * camera.m_rotation.CameraX + filmY * halffilmH * camera.m_rotation.CameraY;
-
-                        Ray ray = new Ray();
-                        ray.orgin = camera.GetPositon();
-                        ray.dir = (filmP - camera.GetPositon());
-
                         //Vector result = new Vector(0.0f, 0.0f, 0.0f);
-                        
-                        float a = 0;
+
+                        float a = 1.0f;
                         Vector rayColour = new Vector();
+                        
                         //build up our colour
                         for (UInt64 r = 0; r < rpp; r++)
                         {
-                            Vector att = new Vector(1.0f, 1.0f, 1.0f);
+                            //Jittering AA
+                            float offX = filmX + Helpers.Rand.RandomBilateral() * halfPixW;
+                            float offY = filmY + Helpers.Rand.RandomBilateral() * halfPixH;
+                            Vector filmP = FilmCenter + offX * halffilmW * camera.m_rotation.CameraX + offY * halffilmH * camera.m_rotation.CameraY;
+
+                            ray.orgin = camera.GetPositon();
+                            ray.dir = (filmP - camera.GetPositon());
+
+                            float coef = 1.0f;
                             Vector result = new Vector(0.0f, 0.0f, 0.0f);
                             bool hitLight = false;
-                            rayColour += RayColourContrib * (ray.Trace(ray, Walls, lights, 0, ref att, ref result, ref hitLight).ColourToVector(ref a));
+                            //rayColour += RayColourContrib * (ray.Trace(ray, Walls, lights, 0, ref coef, ref result, ref hitLight).ColourToVector(ref a));
+                            ray.Trace(ray, Walls, lights, 0, ref coef, ref result, ref hitLight);
+                            rayColour += RayColourContrib * result;
                             rayCount++;
                         }
                         //ColourRGBA colour = ray.Trace(ray, Walls, 0, ref att, ref result);
