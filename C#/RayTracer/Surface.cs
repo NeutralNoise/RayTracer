@@ -179,8 +179,8 @@ namespace RayTracer
 
             //Vector nextOrgin = new Vector(vec + dist * ray.dir);
             Vector nextOrgin = new Vector(ray.orgin + dist * ray.dir);
-            //Vector nextNormal = (nextOrgin - this.pos).Normalize();
-            Vector nextNormal = (dist * ray.dir + (ray.orgin - pos)).Normalize();
+            Vector nextNormal = (nextOrgin - this.pos).Normalize();
+            //Vector nextNormal = (dist * ray.dir + (ray.orgin - pos)).Normalize();
             nextOrgin = nextOrgin + nextNormal * 0.01f;
             return SurfaceFunc.Reflect(m_mat, nextOrgin, ray.dir, nextNormal);
         }
@@ -239,15 +239,20 @@ namespace RayTracer
             Vector pureBounce = Reflect(dir, nextNormal);
             //this is a shit way todo this.
             //TODO this is a shit way todo this. so make it better
-
-            Vector rv = new Vector(Helpers.Rand.RandomBilateral(),
+            if(mat.reflect < 1.0f)
+            {
+                Vector rv = new Vector(Helpers.Rand.RandomBilateral(),
                                     Helpers.Rand.RandomBilateral(),
                                     Helpers.Rand.RandomBilateral()
                                     );
 
-            Vector RandomBounce = (nextNormal + rv).Normalize();
-            nextNormal = RandomBounce.Lerp(pureBounce, mat.reflect).Normalize();
-            //nextNormal = pureBounce;
+                Vector RandomBounce = (nextNormal + rv).Normalize();
+                nextNormal = RandomBounce.Lerp(pureBounce, mat.reflect).Normalize();
+            }
+            else
+            {
+                nextNormal = pureBounce;
+            }
             return new Ray(nextOrgin, nextNormal);
         }
 
